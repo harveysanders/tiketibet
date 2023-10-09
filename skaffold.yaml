@@ -12,4 +12,4 @@ build:
         dockerfile: Dockerfile
 manifests:
   rawYaml:
-    - infra/k8s/auth-depl.yml
+    - infra/k8s/*
