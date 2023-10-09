@@ -18,7 +18,8 @@ FROM base as build
 # -w -> omit the DWARF symbol table
 # -s -> omit the symbol table and debug information
 # -buildvcs=false -> omit version control information,
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  cd cmd && go build \
   -ldflags "-w -s" \
   -buildvcs=false \
   -o /service
