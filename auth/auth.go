@@ -1,12 +1,18 @@
 package auth
 
 import (
+	"log/slog"
+	"os"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 )
 
 type App struct {
-	name string
+	logger   *slog.Logger
+	validate *validator.Validate
+	name     string
 }
 
 func (a *App) String() string {
@@ -15,7 +21,9 @@ func (a *App) String() string {
 
 func NewApp() *App {
 	return &App{
-		name: "auth",
+		name:     "auth",
+		logger:   slog.New(slog.NewJSONHandler(os.Stderr, nil)),
+		validate: validator.New(validator.WithRequiredStructEnabled()),
 	}
 }
 
