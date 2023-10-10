@@ -1,4 +1,4 @@
-package auth
+package api
 
 import (
 	"net/http"
@@ -6,15 +6,15 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (a *App) signOutRouter() *chi.Mux {
+func (s *Server) signOutRouter() *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post("/", a.handleSignOut())
+	r.Post("/", s.handleSignOut())
 
 	return r
 }
 
-func (a *App) handleSignOut() http.HandlerFunc {
+func (s *Server) handleSignOut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"message":"tudo bem"}`))
 	}

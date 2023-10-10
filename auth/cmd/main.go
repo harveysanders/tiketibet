@@ -17,7 +17,7 @@ func main() {
 	}
 
 	log.Printf("Starting %s server on port %s\n", app.String(), port)
-	if err := http.ListenAndServe(":8888", app.Run()); err != nil {
+	if err := http.ListenAndServe(":8888", app.Server.Routes()); err != nil {
 		log.Fatal(err)
 	}
 }

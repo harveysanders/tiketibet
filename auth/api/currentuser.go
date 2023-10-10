@@ -1,4 +1,4 @@
-package auth
+package api
 
 import (
 	"net/http"
@@ -6,15 +6,15 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (a *App) signInRouter() *chi.Mux {
+func (s *Server) currentUserRouter() *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post("/", a.handleSignIn())
+	r.Get("/", s.handleCurrentUser())
 
 	return r
 }
 
-func (a *App) handleSignIn() http.HandlerFunc {
+func (s *Server) handleCurrentUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"message":"tudo bem"}`))
 	}
