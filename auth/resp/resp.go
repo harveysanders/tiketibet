@@ -6,25 +6,28 @@ import (
 	"github.com/go-chi/render"
 )
 
-type ErrResponse struct {
-	Err            error `json:"-"` // low-level runtime error
-	HTTPStatusCode int   `json:"-"` // http response status code
+type Error struct {
+	Message string `json:"message"`
+	Field   string `json:"field,omitempty"`
+}
+type HTTPError interface {
+	StatusCode() int
+	SerializeError() []Error
+}
 
-	StatusText string `json:"status"`          // user-level status message
-	AppCode    int64  `json:"code,omitempty"`  // application-specific error code
-	ErrorText  string `json:"error,omitempty"` // application-level error message, for debugging
+type ErrResponse struct {
+	StatusCode int
+	Errors     []Error `json:"errors"`
 }
 
 func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.HTTPStatusCode)
+	render.Status(r, e.StatusCode)
 	return nil
 }
 
-func ErrRender(err error, status int, msg string) render.Renderer {
+func ErrRender(e HTTPError) render.Renderer {
 	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: status,
-		StatusText:     http.StatusText(status),
-		ErrorText:      msg,
+		Errors:     e.SerializeError(),
+		StatusCode: e.StatusCode(),
 	}
 }

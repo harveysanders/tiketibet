@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -13,7 +14,7 @@ import (
 
 type signUpReq struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6,max=72"`
+	Password string `json:"password" validate:"required,min=6,max=30"`
 }
 
 func (s *Server) signUpRouter() *chi.Mux {
@@ -30,7 +31,8 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			log.Printf("handleSignUp: %v", err)
 
-			render.Render(w, r, resp.ErrRender(err, http.StatusBadRequest, "invalid request body"))
+			resp := resp.ErrResponse{StatusCode: http.StatusBadRequest, Errors: []resp.Error{{Message: "Invalid request body"}}}
+			resp.Render(w, r)
 			return
 		}
 
@@ -38,12 +40,31 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 			validationErrors := err.(validator.ValidationErrors)
 			log.Printf("handleSignUp: %v", validationErrors)
 
-			// TODO: create a custom error response
-			errMsg := validationErrors.Error()
-			render.Render(w, r, resp.ErrRender(err, http.StatusBadRequest, errMsg))
+			render.Render(w, r, resp.ErrRender(ValidationErrors(validationErrors)))
 			return
 		}
 
-		render.DefaultResponder(w, r, render.M{"message": "sign up"})
+		fmt.Printf("creating user... %+v\n", body)
+
+		render.DefaultResponder(w, r, render.M{})
 	}
+}
+
+type ValidationErrors validator.ValidationErrors
+
+func (v ValidationErrors) StatusCode() int {
+	return http.StatusBadRequest
+}
+
+func (v ValidationErrors) SerializeError() []resp.Error {
+	var errors []resp.Error
+
+	for _, err := range v {
+		errors = append(errors, resp.Error{
+			Message: fmt.Sprintf("invalid value '%s'", err.Value()),
+			Field:   err.Tag(),
+		})
+	}
+
+	return errors
 }
