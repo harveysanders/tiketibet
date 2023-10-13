@@ -13,6 +13,7 @@ type Error struct {
 type HTTPError interface {
 	StatusCode() int
 	SerializeError() []Error
+	Error() string
 }
 
 type ErrResponse struct {

@@ -49,22 +49,3 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 		render.DefaultResponder(w, r, render.M{})
 	}
 }
-
-type ValidationErrors validator.ValidationErrors
-
-func (v ValidationErrors) StatusCode() int {
-	return http.StatusBadRequest
-}
-
-func (v ValidationErrors) SerializeError() []resp.Error {
-	var errors []resp.Error
-
-	for _, err := range v {
-		errors = append(errors, resp.Error{
-			Message: fmt.Sprintf("invalid value '%s'", err.Value()),
-			Field:   err.Tag(),
-		})
-	}
-
-	return errors
-}
