@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -52,10 +53,23 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*User, error)
 		return nil, res.Err()
 	}
 
-	var user *User
-	err := res.Decode(user)
+	var user User
+	err := res.Decode(&user)
 	if err != nil {
 		return nil, err
 	}
+	return &user, nil
+}
+
+func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
+	user.ID = primitive.NewObjectID().Hex()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+
+	_, err := s.DB().Collection("users").InsertOne(ctx, user)
+	if err != nil {
+		return user, err
+	}
+
 	return user, nil
 }

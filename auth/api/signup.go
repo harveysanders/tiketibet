@@ -9,12 +9,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+	db "github.com/harveysanders/tiketibet/auth/mongo"
 	"github.com/harveysanders/tiketibet/auth/resp"
 )
 
-type signUpReq struct {
+type signUpRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6,max=30"`
+}
+
+type signUpResp struct {
+	Email string `json:"email"`
 }
 
 func (s *Server) signUpRouter() *chi.Mux {
@@ -27,9 +32,9 @@ func (s *Server) signUpRouter() *chi.Mux {
 
 func (s *Server) handleSignUp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var body signUpReq
+		var body signUpRequest
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			log.Printf("handleSignUp: %v", err)
+			log.Printf("decode: %v", err)
 
 			resp := resp.ErrResponse{StatusCode: http.StatusBadRequest, Errors: []resp.Error{{Message: "Invalid request body"}}}
 			resp.Render(w, r)
@@ -38,7 +43,7 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 
 		if err := s.validate.Struct(&body); err != nil {
 			validationErrors := err.(validator.ValidationErrors)
-			log.Printf("handleSignUp: %v", validationErrors)
+			log.Printf("validate Struct: %v", validationErrors)
 
 			render.Render(w, r, resp.ErrRender(ValidationErrors(validationErrors)))
 			return
@@ -46,7 +51,7 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 
 		existingUser, err := s.store.GetUserByEmail(r.Context(), body.Email)
 		if err != nil {
-			log.Printf("handleSignUp: %v", err)
+			log.Printf("getUserByEmail: %v", err)
 			render.Render(w, r, resp.ErrServerError())
 			return
 		}
@@ -58,6 +63,13 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 		}
 		fmt.Printf("creating user... %+v\n", body)
 
-		render.DefaultResponder(w, r, render.M{})
+		newUser := db.User{Email: body.Email, Password: body.Password}
+		created, err := s.store.CreateUser(r.Context(), &newUser)
+		if err != nil {
+			log.Printf("createUser: %v", err)
+			render.Render(w, r, resp.ErrServerError())
+			return
+		}
+		render.JSON(w, r, created)
 	}
 }
