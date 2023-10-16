@@ -4,17 +4,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
+	"github.com/harveysanders/tiketibet/auth/mongo"
 )
 
 type Server struct {
 	router   *chi.Mux
 	validate *validator.Validate
+	store    *mongo.Store
 }
 
-func NewServer() *Server {
+func NewServer(store *mongo.Store) *Server {
 	return &Server{
 		router:   chi.NewRouter(),
 		validate: validator.New(validator.WithRequiredStructEnabled()),
+		store:    store,
 	}
 }
 

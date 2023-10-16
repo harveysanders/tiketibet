@@ -32,3 +32,24 @@ func ErrRender(e HTTPError) render.Renderer {
 		StatusCode: e.StatusCode(),
 	}
 }
+
+func ErrEmailAlreadyExists(msg string) render.Renderer {
+	return &ErrResponse{
+		Errors:     []Error{{Message: msg}},
+		StatusCode: http.StatusConflict,
+	}
+}
+
+func ErrInvalidRequest() render.Renderer {
+	return &ErrResponse{
+		Errors:     []Error{{Message: "Invalid request body"}},
+		StatusCode: http.StatusBadRequest,
+	}
+}
+
+func ErrServerError() render.Renderer {
+	return &ErrResponse{
+		Errors:     []Error{{Message: "Server error"}},
+		StatusCode: http.StatusInternalServerError,
+	}
+}

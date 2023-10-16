@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/harveysanders/tiketibet/auth"
 	db "github.com/harveysanders/tiketibet/auth/mongo"
@@ -19,10 +20,9 @@ func main() {
 		mongoURL = "mongodb://127.0.0.1:27017/auth"
 	}
 
-	client, err := mongo.Connect(
-		context.TODO(),
-		options.Client().ApplyURI(mongoURL),
-	)
+	dbOpts := options.Client().ApplyURI(mongoURL)
+	dbOpts.SetConnectTimeout(time.Second * 5)
+	client, err := mongo.Connect(context.TODO(), dbOpts)
 	if err != nil {
 		log.Fatalf("DB connect: %v\n", err)
 	}

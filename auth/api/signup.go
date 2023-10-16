@@ -44,6 +44,18 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 			return
 		}
 
+		existingUser, err := s.store.GetUserByEmail(r.Context(), body.Email)
+		if err != nil {
+			log.Printf("handleSignUp: %v", err)
+			render.Render(w, r, resp.ErrServerError())
+			return
+		}
+		if existingUser != nil {
+			render.Render(w, r,
+				resp.ErrEmailAlreadyExists(fmt.Sprintf("User with email %s already exists", body.Email)),
+			)
+			return
+		}
 		fmt.Printf("creating user... %+v\n", body)
 
 		render.DefaultResponder(w, r, render.M{})
