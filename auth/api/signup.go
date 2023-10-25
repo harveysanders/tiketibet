@@ -11,6 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	db "github.com/harveysanders/tiketibet/auth/mongo"
 	"github.com/harveysanders/tiketibet/auth/resp"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type signUpRequest struct {
@@ -18,7 +19,7 @@ type signUpRequest struct {
 	Password string `json:"password" validate:"required,min=6,max=30"`
 }
 
-type signUpResp struct {
+type signUpResponse struct {
 	Email string `json:"email"`
 }
 
@@ -62,13 +63,22 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 		}
 		fmt.Printf("creating user... %+v\n", body)
 
-		newUser := db.User{Email: body.Email, Password: body.Password}
+		hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("bcrypt.GenerateFromPassword: %v", err)
+			render.Render(w, r, resp.ErrServerError())
+			return
+		}
+
+		newUser := db.User{Email: body.Email, Password: string(hash)}
+
 		created, err := s.store.CreateUser(r.Context(), &newUser)
 		if err != nil {
 			log.Printf("createUser: %v", err)
 			render.Render(w, r, resp.ErrServerError())
 			return
 		}
-		render.JSON(w, r, created)
+
+		render.JSON(w, r, signUpResponse{Email: created.Email})
 	}
 }
