@@ -28,5 +28,21 @@ func (v ValidationErrors) SerializeError() []resp.Error {
 }
 
 func (v ValidationErrors) Error() string {
-	return v.Error()
+	return "validation errors"
+}
+
+type BadRequestError struct {
+	Message string
+}
+
+func (b BadRequestError) StatusCode() int {
+	return http.StatusBadRequest
+}
+
+func (b BadRequestError) SerializeError() []resp.Error {
+	return []resp.Error{{Message: b.Message}}
+}
+
+func (b BadRequestError) Error() string {
+	return b.Message
 }

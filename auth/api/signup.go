@@ -36,8 +36,7 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			log.Printf("decode: %v", err)
 
-			resp := resp.ErrResponse{StatusCode: http.StatusBadRequest, Errors: []resp.Error{{Message: "Invalid request body"}}}
-			resp.Render(w, r)
+			render.Render(w, r, resp.ErrRender(BadRequestError{"Invalid request body"}))
 			return
 		}
 
@@ -56,9 +55,9 @@ func (s *Server) handleSignUp() http.HandlerFunc {
 			return
 		}
 		if existingUser != nil {
-			render.Render(w, r,
-				resp.ErrEmailAlreadyExists(fmt.Sprintf("User with email %s already exists", body.Email)),
-			)
+			render.Render(w, r, resp.ErrRender(BadRequestError{
+				fmt.Sprintf("User with email %s already exists", body.Email),
+			}))
 			return
 		}
 		fmt.Printf("creating user... %+v\n", body)
